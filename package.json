@@ -1,0 +1,16 @@
+{
+    "name": "counter",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "build": "esbuild src/index.js --bundle --outdir=dist",
+        "dev": "npm run build -- --watch"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "esbuild": "^0.27.2"
+    }
+}
