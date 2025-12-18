@@ -1,19 +1,38 @@
-name: Build
+name: Build & Deploy to AWS
 
 on:
-    push:
-        branches: [main]
+  push:
+    branches: [main]
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: 18
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
 
-            - run: npm ci
-            - run: npm run build
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ${{ secrets.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          port: 22
+          script: |
+            cd ~/js-counter
+            git pull || git clone https://github.com/${{ github.repository }} .
+            npm ci
+            npm run build
