@@ -1,11 +1,11 @@
-name: Build & Deploy Dist Only
+name: Build & Deploy to AWS
 
 on:
     push:
         branches: [main]
 
 jobs:
-    build-deploy:
+    build:
         runs-on: ubuntu-latest
 
         steps:
@@ -24,7 +24,7 @@ jobs:
             - name: Build project
               run: npm run build
 
-            - name: Deploy dist via SSH
+            - name: Deploy via SSH
               uses: appleboy/ssh-action@v0.1.6
               with:
                   host: ${{ secrets.AWS_HOST }}
@@ -32,7 +32,7 @@ jobs:
                   key: ${{ secrets.AWS_SSH_KEY }}
                   port: 22
                   script: |
-                      rm -rf ~/js-counter/dist
-                      mkdir -p ~/js-counter/dist
-                  rsync: |
-                      -avz --delete dist/ ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }}:~/js-counter/dist/
+                      cd ~/js-counter
+                      git pull || git clone https://github.com/${{ github.repository }} .
+                      npm ci
+                      npm run build
