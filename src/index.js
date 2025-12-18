@@ -12,8 +12,6 @@ function render() {
 
 incBtn.addEventListener("click", () => {
     count++;
-    console.log(count);
-
     render();
 });
 
