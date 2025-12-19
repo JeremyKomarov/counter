@@ -1,10 +1,10 @@
-name: Deploy BP branch to Dev server
+name: Deploy Branch to Dev server
 
 on:
     workflow_dispatch:
         inputs:
             branch:
-                description: "BP branch to deploy"
+                description: "branch to deploy"
                 required: true
             target:
                 description: "Target Dev server"
