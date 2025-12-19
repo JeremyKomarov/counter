@@ -1,10 +1,10 @@
-name: Deploy Branch To Dev Server
+name: Deploy BP branch to Dev server
 
 on:
     workflow_dispatch:
         inputs:
             branch:
-                description: "Branch to deploy"
+                description: "BP branch to deploy"
                 required: true
             target:
                 description: "Target Dev server"
@@ -13,17 +13,16 @@ on:
                 options:
                     - Dev1
                     - Dev2
-                    - Dev3
                     - Dev4
                     - Dev5
                     - Dev6
 
 jobs:
-    deploy:
+    deploy-dev:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Checkout selected branch
+            - name: Checkout branch
               uses: actions/checkout@v4
               with:
                   ref: ${{ inputs.branch }}
@@ -40,7 +39,7 @@ jobs:
             - name: Build project
               run: npm run build
 
-            - name: Select server credentials
+            - name: Select server
               run: |
                   case "${{ inputs.target }}" in
                     Dev1)
@@ -54,9 +53,9 @@ jobs:
                       echo "KEY=${{ secrets.DEV2_SSH_KEY }}" >> $GITHUB_ENV
                       ;;
                     Dev3)
-                      echo "HOST=${{ secrets.DEV3_HOST }}" >> $GITHUB_ENV
-                      echo "USER=${{ secrets.DEV3_USER }}" >> $GITHUB_ENV
-                      echo "KEY=${{ secrets.DEV3_SSH_KEY }}" >> $GITHUB_ENV
+                      echo "HOST=${{ secrets.DEV2_HOST }}" >> $GITHUB_ENV
+                      echo "USER=${{ secrets.DEV2_USER }}" >> $GITHUB_ENV
+                      echo "KEY=${{ secrets.DEV2_SSH_KEY }}" >> $GITHUB_ENV
                       ;;
                     Dev4)
                       echo "HOST=${{ secrets.DEV4_HOST }}" >> $GITHUB_ENV
@@ -73,14 +72,15 @@ jobs:
                       echo "USER=${{ secrets.DEV6_USER }}" >> $GITHUB_ENV
                       echo "KEY=${{ secrets.DEV6_SSH_KEY }}" >> $GITHUB_ENV
                       ;;
+                    *)
+                      echo "❌ Unknown server"
+                      exit 1
+                      ;;
                   esac
 
-            - name: Deploy dist to server
+            - name: Deploy dist
               run: |
                   echo "$KEY" > key.pem
                   chmod 600 key.pem
-
-                  rsync -avz --delete \
-                    -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
-                    dist/ \
-                    $USER@$HOST:/var/www/app/dist/
+                  rsync -avz --delete -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+                    dist/ $USER@$HOST:/var/www/app/dist/
