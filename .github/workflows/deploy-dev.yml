@@ -1,0 +1,86 @@
+name: Deploy BP branch to Dev server
+
+on:
+    workflow_dispatch:
+        inputs:
+            branch:
+                description: "BP branch to deploy (e.g. BP-123)"
+                required: true
+            target:
+                description: "Target Dev server"
+                required: true
+                type: choice
+                options:
+                    - Dev1
+                    - Dev2
+                    - Dev3
+                    - Dev4
+                    - Dev5
+                    - Dev6
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout selected branch
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ inputs.branch }}
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 18
+                  cache: npm
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build project
+              run: npm run build
+
+            - name: Select server credentials
+              run: |
+                  case "${{ inputs.target }}" in
+                    Dev1)
+                      echo "HOST=${{ secrets.DEV1_HOST }}" >> $GITHUB_ENV
+                      echo "USER=${{ secrets.DEV1_USER }}" >> $GITHUB_ENV
+                      echo "KEY=${{ secrets.DEV1_SSH_KEY }}" >> $GITHUB_ENV
+                      ;;
+                    Dev2)
+                      echo "HOST=${{ secrets.DEV2_HOST }}" >> $GITHUB_ENV
+                      echo "USER=${{ secrets.DEV2_USER }}" >> $GITHUB_ENV
+                      echo "KEY=${{ secrets.DEV2_SSH_KEY }}" >> $GITHUB_ENV
+                      ;;
+                    Dev3)
+                      echo "HOST=${{ secrets.DEV3_HOST }}" >> $GITHUB_ENV
+                      echo "USER=${{ secrets.DEV3_USER }}" >> $GITHUB_ENV
+                      echo "KEY=${{ secrets.DEV3_SSH_KEY }}" >> $GITHUB_ENV
+                      ;;
+                    Dev4)
+                      echo "HOST=${{ secrets.DEV4_HOST }}" >> $GITHUB_ENV
+                      echo "USER=${{ secrets.DEV4_USER }}" >> $GITHUB_ENV
+                      echo "KEY=${{ secrets.DEV4_SSH_KEY }}" >> $GITHUB_ENV
+                      ;;
+                    Dev5)
+                      echo "HOST=${{ secrets.DEV5_HOST }}" >> $GITHUB_ENV
+                      echo "USER=${{ secrets.DEV5_USER }}" >> $GITHUB_ENV
+                      echo "KEY=${{ secrets.DEV5_SSH_KEY }}" >> $GITHUB_ENV
+                      ;;
+                    Dev6)
+                      echo "HOST=${{ secrets.DEV6_HOST }}" >> $GITHUB_ENV
+                      echo "USER=${{ secrets.DEV6_USER }}" >> $GITHUB_ENV
+                      echo "KEY=${{ secrets.DEV6_SSH_KEY }}" >> $GITHUB_ENV
+                      ;;
+                  esac
+
+            - name: Deploy dist to server
+              run: |
+                  echo "$KEY" > key.pem
+                  chmod 600 key.pem
+
+                  rsync -avz --delete \
+                    -e "ssh -i key.pem -o StrictHostKeyChecking=no" \
+                    dist/ \
+                    $USER@$HOST:/var/www/app/dist/
